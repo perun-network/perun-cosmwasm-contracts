@@ -4,7 +4,6 @@ use cosmwasm_std::{
 };
 use cw0::NativeBalance;
 use sha2::{Digest, Sha256};
-use std::ops::Sub;
 
 use crate::{
     error::ContractError,
@@ -132,9 +131,7 @@ pub fn withdraw(
     let key: (&[u8], &[u8]) = (&account, &channel_id);
     let mut balance = ASSETS.may_load(deps.storage, key)?.unwrap_or_default();
     let amount = balance.clone();
-    balance = balance
-        .sub(amount.clone().into_vec())
-        .expect("error converting balances");
+    balance = (balance - amount.clone().into_vec()).expect("error converting balances");
     ASSETS.save(deps.storage, key, &balance)?;
 
     let mut res = Response::new();
