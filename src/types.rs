@@ -1,59 +1,72 @@
-// use schemars::gen::SchemaGenerator;
-// use schemars::schema::*;
-// use schemars::JsonSchema;
+use cosmwasm_std::Uint128;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::convert::TryInto;
 
-// // Does not require T: JsonSchema.
-// impl<T> JsonSchema for [T; 0] {
-//     no_ref_schema!();
+pub type HashValue = [u8; 32];
+pub type ChannelID = HashValue;
+pub type Balance = Uint128;
+pub type Account = [u8; 20];
+pub type Nonce = [u8; 32];
 
-//     fn schema_name() -> String {
-//         "EmptyArray".to_owned()
-//     }
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Signature {
+    pub r: [u8; 32],
+    pub s: [u8; 32],
+    pub v: u8,
+}
 
-//     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-//         SchemaObject {
-//             instance_type: Some(InstanceType::Array.into()),
-//             array: Some(Box::new(ArrayValidation {
-//                 max_items: Some(0),
-//                 ..Default::default()
-//             })),
-//             ..Default::default()
-//         }
-//         .into()
-//     }
-// }
+impl Signature {
+    pub fn to_bytes(&self) -> [u8; 64] {
+        [self.r, self.s].concat().try_into().unwrap()
+    }
+}
 
-// macro_rules! array_impls {
-//     ($($len:tt)+) => {
-//         $(
-//             impl<T: JsonSchema> JsonSchema for [T; $len] {
-//                 no_ref_schema!();
+impl From<&[u8]> for Signature {
+    fn from(bytes: &[u8]) -> Self {
+        Signature {
+            r: bytes[..32].try_into().unwrap(),
+            s: bytes[32..64].try_into().unwrap(),
+            v: bytes[64],
+        }
+    }
+}
 
-//                 fn schema_name() -> String {
-//                     format!("Array_size_{}_of_{}", $len, T::schema_name())
-//                 }
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ChannelParameters {
+    pub participants: [Account; 2],
+    pub nonce: Nonce,
+    pub challenge_duration: u64,
+}
 
-//                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-//                     SchemaObject {
-//                         instance_type: Some(InstanceType::Array.into()),
-//                         array: Some(Box::new(ArrayValidation {
-//                             items: Some(gen.subschema_for::<T>().into()),
-//                             max_items: Some($len),
-//                             min_items: Some($len),
-//                             ..Default::default()
-//                         })),
-//                         ..Default::default()
-//                     }
-//                     .into()
-//                 }
-//             }
-//         )+
-//     }
-// }
+impl ChannelParameters {
+    pub fn hash(&self) -> ChannelID {
+        let mut hasher = Sha256::new();
+        hasher.update(self.participants[0]);
+        hasher.update(self.participants[1]);
+        hasher.update(self.nonce);
+        hasher.update(self.challenge_duration.to_be_bytes());
+        let result = hasher.finalize();
+        result.try_into().unwrap()
+    }
+}
 
-// array_impls! {
-//      1  2  3  4  5  6  7  8  9 10
-//     11 12 13 14 15 16 17 18 19 20
-//     21 22 23 24 25 26 27 28 29 30
-//     31 32
-// }
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ChannelState {
+    pub version: u64,
+    pub balance: [Balance; 2],
+    pub finalized: bool,
+}
+
+impl ChannelState {
+    pub fn hash(&self) -> HashValue {
+        let mut hasher = Sha256::new();
+        hasher.update(self.version.to_be_bytes());
+        hasher.update(self.balance[0].u128().to_be_bytes());
+        hasher.update(self.balance[1].u128().to_be_bytes());
+        hasher.update([self.finalized as u8]);
+        let result = hasher.finalize();
+        result.try_into().unwrap()
+    }
+}

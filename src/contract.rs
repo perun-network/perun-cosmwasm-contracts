@@ -8,12 +8,9 @@ use std::ops::Sub;
 
 use crate::{
     error::ContractError,
-    msg::Account,
-    state::{RegisteredChannelState, ASSETS, STATES},
-};
-use crate::{
-    msg::{ChannelID, ChannelParameters, ChannelState, HandleMsg, InitMsg, QueryMsg, Signature},
-    state::DENOM,
+    msg::{HandleMsg, InitMsg, QueryMsg},
+    state::{RegisteredChannelState, ASSETS, DENOM, STATES},
+    types::{Account, ChannelID, ChannelParameters, ChannelState, Signature},
 };
 
 pub fn instantiate(
@@ -247,7 +244,7 @@ fn query_funds(deps: Deps, channel: ChannelID, account: Account) -> StdResult<Na
 mod tests {
     use std::convert::TryInto;
 
-    use crate::msg::Nonce;
+    use crate::types::Nonce;
 
     use super::*;
     use cosmwasm_std::{

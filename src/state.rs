@@ -5,7 +5,7 @@ use cosmwasm_std::Env;
 use cw0::NativeBalance;
 use cw_storage_plus::{Item, Map};
 
-use crate::msg::{ChannelParameters, ChannelState};
+use crate::types::{ChannelParameters, ChannelState};
 
 pub type BalanceID = [u8];
 pub type Timestamp = u64;
