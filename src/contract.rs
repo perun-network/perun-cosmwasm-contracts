@@ -117,10 +117,10 @@ pub fn withdraw(
     _env: Env,
     info: MessageInfo,
     params: ChannelParameters,
-    account_index: usize,
+    account_index: u16,
     sig: Signature,
 ) -> Result<Response, ContractError> {
-    let account = params.participants[account_index];
+    let account = params.participants[usize::from(account_index)];
     let channel_id = params.hash();
     let receiver = info.sender;
     let receiver_canonical = deps.api.canonical_address(&receiver)?;
@@ -308,7 +308,7 @@ mod tests {
         _env: Env,
         info: MessageInfo,
         params: ChannelParameters,
-        account_index: usize,
+        account_index: u16,
         sig: super::Signature,
     ) {
         withdraw(deps, _env, info, params, account_index, sig).unwrap();

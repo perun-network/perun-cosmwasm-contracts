@@ -22,10 +22,10 @@ pub enum HandleMsg {
         state: ChannelState,
         sigs: [Signature; 2],
     },
-    // Withdraw withdraws with
+    // Withdraw withdraws the funds from the channel.
     Withdraw {
         params: ChannelParameters,
-        account_index: usize,
+        account_index: u16,
         sig: Signature,
     },
 }
