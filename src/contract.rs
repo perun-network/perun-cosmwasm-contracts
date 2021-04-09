@@ -26,7 +26,6 @@ pub fn instantiate(
     Ok(Response::default())
 }
 
-// And declare a custom Error variant for the ones where you will want to make use of it
 pub fn execute(
     deps: DepsMut,
     _env: Env,
@@ -131,9 +130,7 @@ pub fn withdraw(
     let receiver_canonical = deps.api.canonical_address(&receiver)?;
 
     ensure_settled(deps.storage, _env, params)?;
-    println!("before verify");
     verify_withdrawal(&deps, channel_id, receiver_canonical, sig, account)?;
-    println!("after verify`");
 
     let key: (&[u8], &[u8]) = (&account, &channel_id);
     let mut balance = ASSETS.may_load(deps.storage, key)?.unwrap_or_default();
