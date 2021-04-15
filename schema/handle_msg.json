@@ -5,33 +5,206 @@
     {
       "type": "object",
       "required": [
-        "increment"
+        "deposit"
       ],
       "properties": {
-        "increment": {
-          "type": "object"
+        "deposit": {
+          "type": "object",
+          "required": [
+            "account",
+            "channel"
+          ],
+          "properties": {
+            "account": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "maxItems": 20,
+              "minItems": 20
+            },
+            "channel": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "maxItems": 32,
+              "minItems": 32
+            }
+          }
         }
       }
     },
     {
       "type": "object",
       "required": [
-        "reset"
+        "register"
       ],
       "properties": {
-        "reset": {
+        "register": {
           "type": "object",
           "required": [
-            "count"
+            "params",
+            "sigs",
+            "state"
           ],
           "properties": {
-            "count": {
+            "params": {
+              "$ref": "#/definitions/ChannelParameters"
+            },
+            "sigs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Signature"
+              },
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "state": {
+              "$ref": "#/definitions/ChannelState"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdraw"
+      ],
+      "properties": {
+        "withdraw": {
+          "type": "object",
+          "required": [
+            "account_index",
+            "params",
+            "sig"
+          ],
+          "properties": {
+            "account_index": {
               "type": "integer",
-              "format": "int32"
+              "format": "uint16",
+              "minimum": 0.0
+            },
+            "params": {
+              "$ref": "#/definitions/ChannelParameters"
+            },
+            "sig": {
+              "$ref": "#/definitions/Signature"
             }
           }
         }
       }
     }
-  ]
+  ],
+  "definitions": {
+    "ChannelParameters": {
+      "type": "object",
+      "required": [
+        "challenge_duration",
+        "nonce",
+        "participants"
+      ],
+      "properties": {
+        "challenge_duration": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "nonce": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          },
+          "maxItems": 32,
+          "minItems": 32
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "maxItems": 20,
+            "minItems": 20
+          },
+          "maxItems": 2,
+          "minItems": 2
+        }
+      }
+    },
+    "ChannelState": {
+      "type": "object",
+      "required": [
+        "balance",
+        "finalized",
+        "version"
+      ],
+      "properties": {
+        "balance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Uint128"
+          },
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "finalized": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Signature": {
+      "type": "object",
+      "required": [
+        "r",
+        "s",
+        "v"
+      ],
+      "properties": {
+        "r": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          },
+          "maxItems": 32,
+          "minItems": 32
+        },
+        "s": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          },
+          "maxItems": 32,
+          "minItems": 32
+        },
+        "v": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Uint128": {
+      "type": "string"
+    }
+  }
 }
