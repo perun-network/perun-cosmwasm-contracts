@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    coin, coins, to_binary, BankMsg, Binary, CanonicalAddr, Deps, DepsMut, Env, MessageInfo,
-    RecoverPubkeyError, Response, StdError, StdResult, Storage,
+    coin, coins, to_binary, BankMsg, Binary, Deps, DepsMut, Env, MessageInfo, RecoverPubkeyError,
+    Response, StdError, StdResult, Storage,
 };
 use cw0::NativeBalance;
 use sha2::{Digest, Sha256};
@@ -123,10 +123,9 @@ pub fn withdraw(
     let account = params.participants[usize::from(account_index)];
     let channel_id = params.hash();
     let receiver = info.sender;
-    let receiver_canonical = deps.api.canonical_address(&receiver)?;
 
     ensure_settled(deps.storage, _env, params)?;
-    verify_withdrawal(&deps, channel_id, receiver_canonical, sig, account)?;
+    verify_withdrawal(&deps, channel_id, sig, account)?;
 
     let key: (&[u8], &[u8]) = (&account, &channel_id);
     let mut balance = ASSETS.may_load(deps.storage, key)?.unwrap_or_default();
@@ -145,13 +144,11 @@ pub fn withdraw(
 fn verify_withdrawal(
     deps: &DepsMut,
     channel_id: ChannelID,
-    receiver: CanonicalAddr,
     sig: Signature,
     account: Account,
 ) -> Result<(), ContractError> {
     let mut hasher = Sha256::new();
     hasher.update(channel_id);
-    hasher.update(receiver.as_slice());
     let hash = hasher.finalize();
 
     let pk = deps
@@ -246,7 +243,7 @@ mod tests {
     use super::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        HumanAddr, Uint128,
+        Uint128,
     };
     use k256::{
         ecdsa::{recoverable, signature::DigestSigner, SigningKey, VerifyingKey},
@@ -358,10 +355,7 @@ mod tests {
 
         // withdraw
         let account_index = 0;
-        use cosmwasm_std::Api;
-        let receiver = HumanAddr::from("alice");
-        let receiver_canonical = deps.api.canonical_address(&receiver).unwrap();
-        let sig = sign_withdrawal(params.hash(), receiver_canonical, &sk1);
+        let sig = sign_withdrawal(params.hash(), &sk1);
         let info = mock_info("alice", &[]);
         _env.block.time += 60;
         test_withdraw(deps.as_mut(), _env, info, params, account_index, sig);
@@ -386,15 +380,9 @@ mod tests {
         ]
     }
 
-    fn sign_withdrawal(
-        channel_id: ChannelID,
-        receiver: CanonicalAddr,
-        sk: &SigningKey,
-    ) -> super::Signature {
+    fn sign_withdrawal(channel_id: ChannelID, sk: &SigningKey) -> super::Signature {
         let mut hasher = Sha256::new();
         hasher.update(channel_id);
-        hasher.update(receiver.as_slice());
-
         let sig: recoverable::Signature = sk.sign_digest(hasher);
         sig.as_ref().try_into().unwrap()
     }
