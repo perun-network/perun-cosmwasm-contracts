@@ -1,4 +1,4 @@
-# Perun CosmWasm Contracts
+# Perun CosmWasm Study: Contracts
 
 This repository contains a proof-of-concept implementation of the Perun Channel contracts in CosmWasm.
 
